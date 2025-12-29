@@ -64,23 +64,6 @@ job_options = sorted(df['Kategori_Pekerjaan_Simple'].dropna().unique())
 
 
 
-# =========================
-# 2. SIDEBAR — DATA INPUT
-# =========================
-
-st.sidebar.title("📂 Data Input")
-
-uploaded_file = st.sidebar.file_uploader(
-    "Upload CSV file",
-    type=["csv"]
-)
-
-if uploaded_file is None:
-    st.info("⬅️ Upload dataset CSV untuk mulai dashboard.")
-    st.stop()
-
-df = load_data(uploaded_file)
-
 
 # =========================
 # 3. SIDEBAR — GLOBAL FILTER
@@ -143,24 +126,68 @@ st.title("🎓 Bootcamp Enrollment Dashboard")
 
 col1, col2, col3, col4, col5 = st.columns(5)
 
+st.markdown("""
+<style>
+.kpi-box {
+    background-color: #0e1117;
+    padding: 18px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid #262730;
+}
+.kpi-title {
+    font-size: 14px;
+    color: #9aa0a6;
+}
+.kpi-value {
+    font-size: 22px;
+    font-weight: 600;
+    word-wrap: break-word;
+}
+</style>
+""", unsafe_allow_html=True)
+
+col1, col2, col3, col4, col5 = st.columns(5)
+
 with col1:
-    st.metric("Total Peserta", len(df_filtered))
+    st.markdown(f"""
+    <div class="kpi-box">
+        <div class="kpi-title">Total Peserta</div>
+        <div class="kpi-value">{len(df_filtered)}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col2:
-    top_product = df_filtered['Product'].value_counts().idxmax()
-    st.metric("Top Product", top_product)
+    st.markdown(f"""
+    <div class="kpi-box">
+        <div class="kpi-title">Top Product</div>
+        <div class="kpi-value">{top_product}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col3:
-    top_channel = df_filtered['Channel_Simple'].value_counts().idxmax()
-    st.metric("Top Channel", top_channel)
+    st.markdown(f"""
+    <div class="kpi-box">
+        <div class="kpi-title">Top Channel</div>
+        <div class="kpi-value">{top_channel}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col4:
-    job_pct = (df_filtered['Kategori_Pekerjaan_Simple'] == 'Job Seeker').mean() * 100
-    st.metric("% Job Seeker", f"{job_pct:.1f}%")
+    st.markdown(f"""
+    <div class="kpi-box">
+        <div class="kpi-title">% Job Seeker</div>
+        <div class="kpi-value">{job_pct:.1f}%</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col5:
-    period = f"{df_filtered['Tanggal Gabungan_fix'].min().date()} – {df_filtered['Tanggal Gabungan_fix'].max().date()}"
-    st.metric("Periode Data", period)
+    st.markdown(f"""
+    <div class="kpi-box">
+        <div class="kpi-title">Periode Data</div>
+        <div class="kpi-value">{period}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 st.divider()
@@ -408,12 +435,12 @@ st.divider()
 # =========================
 st.markdown("### Distribusi Umur")
 
-if 'Umur_num' in meta_all.columns and meta_all['Umur_num'].notna().sum() > 0:
+if 'Umur' in meta_all.columns and meta_all['Umur'].notna().sum() > 0:
     fig8, ax8 = plt.subplots(figsize=(6,4))
     sns.boxplot(
         data=meta_all,
         x=meta_all['Product'] == 'Data Science',
-        y='Umur_num',
+        y='Umur',
         ax=ax8
     )
     ax8.set_xticklabels(['Non Data Science', 'Data Science'])
@@ -478,7 +505,7 @@ with colB:
     st.metric("% Job Seeker (DS)", f"{job_seeker_ds:.1f}%")
 
 with colC:
-    avg_age_ds = meta_ds['Umur_num'].mean() if 'Umur_num' in meta_ds.columns else np.nan
+    avg_age_ds = meta_ds['Umur'].mean() if 'Umur_num' in meta_ds.columns else np.nan
     st.metric("Rata-rata Umur (DS)", "-" if np.isnan(avg_age_ds) else f"{avg_age_ds:.1f}")
 
 st.divider()
@@ -510,12 +537,12 @@ st.divider()
 # =========================
 st.markdown("### Distribusi Umur")
 
-if 'Umur_num' in meta_all.columns and meta_all['Umur_num'].notna().sum() > 0:
+if 'Umur' in meta_all.columns and meta_all['Umur'].notna().sum() > 0:
     fig8, ax8 = plt.subplots(figsize=(6,4))
     sns.boxplot(
         data=meta_all,
         x=meta_all['Product'] == 'Data Science',
-        y='Umur_num',
+        y='Umur',
         ax=ax8
     )
     ax8.set_xticklabels(['Non Data Science', 'Data Science'])
