@@ -124,6 +124,33 @@ df_filtered = df[
 
 st.title("🎓 Bootcamp Enrollment Dashboard")
 
+# =========================
+# KPI VARIABLES (WAJIB ADA)
+# =========================
+total_participants = len(df_filtered)
+
+top_product = (
+    df_filtered['Product'].value_counts().idxmax()
+    if not df_filtered.empty else "-"
+)
+
+top_channel = (
+    df_filtered['Channel_Simple'].value_counts().idxmax()
+    if not df_filtered.empty else "-"
+)
+
+job_pct = (
+    (df_filtered['Kategori_Pekerjaan_Simple'] == 'Job Seeker').mean() * 100
+    if not df_filtered.empty else 0
+)
+
+period = (
+    f"{df_filtered['Tanggal Gabungan_fix'].min().date()} – "
+    f"{df_filtered['Tanggal Gabungan_fix'].max().date()}"
+    if not df_filtered.empty else "-"
+)
+
+
 st.markdown("""
 <style>
 .kpi-box {
