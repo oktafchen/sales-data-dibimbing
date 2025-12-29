@@ -62,9 +62,6 @@ df = load_data(uploaded_file)
 
 job_options = sorted(df['Kategori_Pekerjaan_Simple'].dropna().unique())
 
-st.write("DEBUG KOLOM:")
-st.write(df.columns.tolist())
-
 
 
 # =========================
