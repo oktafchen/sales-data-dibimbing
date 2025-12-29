@@ -117,6 +117,22 @@ df_filtered = df[
     (df['Kategori_Pekerjaan_Simple'].isin(selected_jobs))
 ]
 
+# =========================
+# PRODUCT GROUPING (TOP N)
+# =========================
+TOP_N = 8
+
+top_products = (
+    df_filtered['Product']
+    .value_counts()
+    .head(TOP_N)
+    .index
+)
+
+df_viz = df_filtered.copy()
+df_viz['Product_Grouped'] = df_viz['Product'].apply(
+    lambda x: x if x in top_products else 'Others'
+)
 
 # =========================
 # 5. SECTION 1 — OVERVIEW KPI
@@ -217,26 +233,9 @@ with col5:
 
 st.divider()
 
-# =========================
-# 6. SECTION 2 — PRODUCT & CHANNEL PERFORMANCE
-# =========================
 
-st.subheader("📊 Product & Channel Performance")
 
-# Placeholder chart (nanti kita isi)
-st.info("➡️ Grafik Product & Channel akan ditambahkan di sini.")
 
-st.divider()
-
-# =========================
-# 7. SECTION 3 — PARTICIPANT PROFILE
-# =========================
-
-st.subheader("👥 Participant Profile")
-
-st.info("➡️ Visual profil peserta akan ditambahkan di sini.")
-
-st.divider()
 
 # =========================
 # 8. SECTION 4 — DEEP DIVE (META ADS → DATA SCIENCE)
@@ -270,7 +269,16 @@ st.markdown("""
 # 6. SECTION 2 — PRODUCT & CHANNEL PERFORMANCE
 # =========================
 
+# =========================
+# 6. SECTION 2 — PRODUCT & CHANNEL PERFORMANCE
+# =========================
+
 st.subheader("📊 Product & Channel Performance")
+
+# Placeholder chart (nanti kita isi)
+st.info("➡️ Grafik Product & Channel akan ditambahkan di sini.")
+
+st.divider()
 
 # --- Bar: Participants per Product ---
 prod_counts = (
@@ -292,9 +300,10 @@ st.pyplot(fig1)
 
 # --- Stacked Bar (COUNT): Channel per Product ---
 pivot_count = pd.crosstab(
-    df_filtered['Product'],
-    df_filtered['Channel_Simple']
+    df_viz['Product_Grouped'],
+    df_viz['Channel_Simple']
 )
+
 
 fig2, ax2 = plt.subplots(figsize=(8,4))
 pivot_count.plot(
@@ -312,8 +321,8 @@ st.pyplot(fig2)
 
 # --- Stacked Bar (%): Channel per Product ---
 pivot_pct = pd.crosstab(
-    df_filtered['Product'],
-    df_filtered['Channel_Simple'],
+    df_viz['Product_Grouped'],
+    df_viz['Channel_Simple'],
     normalize='index'
 ) * 100
 
@@ -335,12 +344,21 @@ st.pyplot(fig3)
 # =========================
 # 7. SECTION 3 — PARTICIPANT PROFILE
 # =========================
+# =========================
+# 7. SECTION 3 — PARTICIPANT PROFILE
+# =========================
+
 st.subheader("👥 Participant Profile")
+
+st.info("➡️ Visual profil peserta akan ditambahkan di sini.")
+
+st.divider()
+
 
 # --- Stacked Bar (%): Job Category per Product ---
 job_pct = pd.crosstab(
-    df_filtered['Product'],
-    df_filtered['Kategori_Pekerjaan_Simple'],
+    df_viz['Product_Grouped'],
+    df_viz['Kategori_Pekerjaan_Simple'],
     normalize='index'
 ) * 100
 
@@ -359,12 +377,20 @@ st.pyplot(fig4)
 
 if 'Umur' in df_filtered.columns and df_filtered['Umur'].notna().sum() > 0:
     fig5, ax5 = plt.subplots(figsize=(6,4))
-    sns.boxplot(
-        data=df_filtered,
-        x='Product',
-        y='Umur',
-        ax=ax5
+    product_order = (
+    df_viz['Product_Grouped']
+    .value_counts()
+    .index
     )
+
+    sns.boxplot(
+    data=df_viz,
+    x='Product_Grouped',
+    y='Umur_num',
+    order=product_order
+    )
+
+    plt.xticks(rotation=30, ha='right')
     ax5.set_title("Distribusi Umur Peserta per Product")
     ax5.set_xlabel("Product")
     ax5.set_ylabel("Umur")
