@@ -12,6 +12,20 @@ st.set_page_config(
 # =========================
 # 1. LOAD & PREPROCESS DATA
 # =========================
+def simplify_job_category(x):
+    x = str(x).lower()
+
+    if 'job seeker' in x or 'jobseeker' in x or 'fresh graduate' in x:
+        return 'Job Seeker'
+    elif 'mahasiswa' in x or 'student' in x:
+        return 'Mahasiswa'
+    elif 'freelance' in x or 'wirausaha' in x or 'usaha' in x:
+        return 'Freelance / Wirausaha'
+    elif 'karyawan' in x or 'bekerja' in x or 'pegawai' in x:
+        return 'Pekerja'
+    else:
+        return 'Others'
+
 
 @st.cache_data
 def load_data(uploaded_file):
@@ -30,6 +44,11 @@ def load_data(uploaded_file):
     df['Channel_Simple'] = df['Channel'].apply(
         lambda x: x if x in top_channels else 'Others'
     )
+
+    df['Kategori_Pekerjaan_Simple'] = df['Kategori Pekerjaan'].apply(
+        simplify_job_category
+    )
+
 
     return df
 
