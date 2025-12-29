@@ -27,30 +27,44 @@ def simplify_job_category(x):
         return 'Others'
 
 
-@st.cache_data
 def load_data(uploaded_file):
     df = pd.read_csv(uploaded_file)
 
-    # --- Date handling ---
-    df['Tanggal Gabungan_fix'] = pd.to_datetime(
-        df['Tanggal Gabungan_fix'],
-        errors='coerce'
-    )
+    # Date handling
+    if 'Tanggal Gabungan_fix' in df.columns:
+        df['Tanggal Gabungan_fix'] = pd.to_datetime(df['Tanggal Gabungan_fix'], errors='coerce')
+    else:
+        df['Tanggal Gabungan_fix'] = pd.to_datetime(df['Tanggal Gabungan'], errors='coerce')
 
     df['Month_Only'] = df['Tanggal Gabungan_fix'].dt.to_period('M').astype(str)
 
-    # --- Simplify Channel ---
+    # Simplify Channel
     top_channels = df['Channel'].value_counts().head(5).index
     df['Channel_Simple'] = df['Channel'].apply(
         lambda x: x if x in top_channels else 'Others'
     )
 
+    # 🔥 WAJIB ADA — INI KUNCI
     df['Kategori_Pekerjaan_Simple'] = df['Kategori Pekerjaan'].apply(
         simplify_job_category
     )
 
-
     return df
+
+
+uploaded_file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
+
+if uploaded_file is None:
+    st.info("Upload dataset CSV untuk mulai dashboard.")
+    st.stop()
+
+df = load_data(uploaded_file)
+
+job_options = sorted(df['Kategori_Pekerjaan_Simple'].dropna().unique())
+
+st.write("DEBUG KOLOM:")
+st.write(df.columns.tolist())
+
 
 
 # =========================
