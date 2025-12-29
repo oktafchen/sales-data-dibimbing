@@ -386,7 +386,7 @@ if 'Umur' in df_filtered.columns and df_filtered['Umur'].notna().sum() > 0:
     sns.boxplot(
     data=df_viz,
     x='Product_Grouped',
-    y='Umur_num',
+    y='Umur',
     order=product_order
     )
 
