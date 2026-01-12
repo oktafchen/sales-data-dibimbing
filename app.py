@@ -214,7 +214,7 @@ with tab1:
     st.subheader("Distribusi Product (Top 10)")
 
     # =========================
-    # PREP DATA
+    # PRODUCT CHART
     # =========================
     product_count = (
         filtered_df
@@ -235,9 +235,6 @@ with tab1:
             for v in product_count['count']
         ]
 
-        # =========================
-        # PLOT
-        # =========================
         fig, ax = plt.subplots(figsize=(10, 5))
 
         bars = ax.bar(
@@ -246,38 +243,36 @@ with tab1:
             color=colors
         )
 
-        # =========================
-        # VALUE LABEL
-        # =========================
         for bar in bars:
             height = bar.get_height()
             ax.text(
                 bar.get_x() + bar.get_width() / 2,
                 height,
-                f'{int(height)}',
+                int(height),
                 ha='center',
                 va='bottom',
                 fontsize=9
             )
 
-        # =========================
-        # STYLE
-        # =========================
         ax.set_ylabel("Jumlah Peserta")
-        ax.set_xlabel("")
-        ax.set_title("Product Terlaris berdasarkan Jumlah Peserta")
+        ax.set_title("Product Terlaris")
         ax.set_xticklabels(
             product_count['Product'],
             rotation=45,
             ha='right'
         )
-
         ax.grid(axis='y', linestyle='--', alpha=0.5)
 
         st.pyplot(fig)
 
-        st.markdown("---")
-         channel_count = (
+    st.markdown("---")
+
+    # =========================
+    # CHANNEL CHART
+    # =========================
+    st.subheader("Distribusi Channel (Top 8)")
+
+    channel_count = (
         filtered_df
         .groupby('Channel_Simple')
         .size()
@@ -296,9 +291,6 @@ with tab1:
             for v in channel_count['count']
         ]
 
-        # =========================
-        # PLOT
-        # =========================
         fig, ax = plt.subplots(figsize=(10, 5))
 
         bars = ax.bar(
@@ -307,35 +299,28 @@ with tab1:
             color=colors
         )
 
-        # =========================
-        # VALUE LABEL
-        # =========================
         for bar in bars:
             height = bar.get_height()
             ax.text(
                 bar.get_x() + bar.get_width() / 2,
                 height,
-                f'{int(height)}',
+                int(height),
                 ha='center',
                 va='bottom',
                 fontsize=9
             )
 
-        # =========================
-        # STYLE
-        # =========================
         ax.set_ylabel("Jumlah Peserta")
-        ax.set_xlabel("")
-        ax.set_title("Kontribusi Channel terhadap Enrollment")
+        ax.set_title("Kontribusi Channel")
         ax.set_xticklabels(
             channel_count['Channel_Simple'],
             rotation=30,
             ha='right'
         )
-
         ax.grid(axis='y', linestyle='--', alpha=0.5)
 
         st.pyplot(fig)
+
         
 
 with tab2:
@@ -543,6 +528,93 @@ with tab3:
         ax.grid(axis='y', linestyle='--', alpha=0.4)
 
         st.pyplot(fig)
+
+with tab4:
+    st.subheader("🔎 Deep Dive Analysis")
+
+    st.markdown("### 📉 Enrollment Drop – April 2025")
+
+    months_focus = ['2025-03', '2025-04', '2025-05']
+    df_april = filtered_df[filtered_df['Month'].isin(months_focus)]
+
+    if df_april.empty:
+        st.warning("Data tidak cukup untuk analisis April 2025.")
+    else:
+        fig, ax = plt.subplots(figsize=(8,5))
+
+        sns.countplot(
+            data=df_april,
+            x='Month',
+            hue='Channel_Simple',
+            ax=ax
+        )
+
+        ax.set_title("Channel Contribution Around April 2025")
+        ax.set_xlabel("Month")
+        ax.set_ylabel("Participants")
+        ax.legend(title="Channel")
+
+        st.pyplot(fig)
+            st.markdown("---")
+    st.markdown("### 🎯 Meta Ads Contribution to Data Science")
+
+    df_ds = filtered_df[filtered_df['Product'] == 'Data Science']
+
+    if df_ds.empty:
+        st.warning("Tidak ada data Data Science.")
+    else:
+        channel_ds = (
+            df_ds
+            .groupby('Channel_Simple')
+            .size()
+            .reset_index(name='count')
+            .sort_values('count', ascending=False)
+            .head(6)
+        )
+
+        fig, ax = plt.subplots(figsize=(8,4))
+
+        bars = ax.bar(
+            channel_ds['Channel_Simple'],
+            channel_ds['count'],
+            color=['#F97316' if i == 0 else '#3B82F6' for i in range(len(channel_ds))]
+        )
+
+        for bar in bars:
+            ax.text(
+                bar.get_x() + bar.get_width()/2,
+                bar.get_height(),
+                int(bar.get_height()),
+                ha='center',
+                va='bottom'
+            )
+
+        ax.set_title("Top Channels for Data Science Enrollment")
+        ax.set_ylabel("Participants")
+        ax.set_xlabel("")
+        ax.set_xticklabels(channel_ds['Channel_Simple'], rotation=30, ha='right')
+
+        st.pyplot(fig)
+            st.markdown("---")
+    st.markdown("### 👤 Motivation vs Job Category")
+
+    fig, ax = plt.subplots(figsize=(8,5))
+
+    sns.countplot(
+        data=filtered_df,
+        x='Motivation_Category',
+        hue='Kategori_Pekerjaan_Simple',
+        ax=ax
+    )
+
+    ax.set_title("Motivation vs Job Category")
+    ax.set_xlabel("Motivation")
+    ax.set_ylabel("Participants")
+    ax.legend(title="Job Category")
+
+    st.pyplot(fig)
+
+
 
 # =========================
 # 9. FOOTER
