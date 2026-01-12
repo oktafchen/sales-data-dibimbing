@@ -555,64 +555,64 @@ with tab4:
         ax.legend(title="Channel")
 
         st.pyplot(fig)
-            st.markdown("---")
-    st.markdown("### 🎯 Meta Ads Contribution to Data Science")
-
-    df_ds = filtered_df[filtered_df['Product'] == 'Data Science']
-
-    if df_ds.empty:
-        st.warning("Tidak ada data Data Science.")
-    else:
-        channel_ds = (
-            df_ds
-            .groupby('Channel_Simple')
-            .size()
-            .reset_index(name='count')
-            .sort_values('count', ascending=False)
-            .head(6)
-        )
-
-        fig, ax = plt.subplots(figsize=(8,4))
-
-        bars = ax.bar(
-            channel_ds['Channel_Simple'],
-            channel_ds['count'],
-            color=['#F97316' if i == 0 else '#3B82F6' for i in range(len(channel_ds))]
-        )
-
-        for bar in bars:
-            ax.text(
-                bar.get_x() + bar.get_width()/2,
-                bar.get_height(),
-                int(bar.get_height()),
-                ha='center',
-                va='bottom'
+        st.markdown("---")
+        st.markdown("### 🎯 Meta Ads Contribution to Data Science")
+    
+        df_ds = filtered_df[filtered_df['Product'] == 'Data Science']
+    
+        if df_ds.empty:
+            st.warning("Tidak ada data Data Science.")
+        else:
+            channel_ds = (
+                df_ds
+                .groupby('Channel_Simple')
+                .size()
+                .reset_index(name='count')
+                .sort_values('count', ascending=False)
+                .head(6)
             )
-
-        ax.set_title("Top Channels for Data Science Enrollment")
+    
+            fig, ax = plt.subplots(figsize=(8,4))
+    
+            bars = ax.bar(
+                channel_ds['Channel_Simple'],
+                channel_ds['count'],
+                color=['#F97316' if i == 0 else '#3B82F6' for i in range(len(channel_ds))]
+            )
+    
+            for bar in bars:
+                ax.text(
+                    bar.get_x() + bar.get_width()/2,
+                    bar.get_height(),
+                    int(bar.get_height()),
+                    ha='center',
+                    va='bottom'
+                )
+    
+            ax.set_title("Top Channels for Data Science Enrollment")
+            ax.set_ylabel("Participants")
+            ax.set_xlabel("")
+            ax.set_xticklabels(channel_ds['Channel_Simple'], rotation=30, ha='right')
+    
+            st.pyplot(fig)
+                st.markdown("---")
+        st.markdown("### 👤 Motivation vs Job Category")
+    
+        fig, ax = plt.subplots(figsize=(8,5))
+    
+        sns.countplot(
+            data=filtered_df,
+            x='Motivation_Category',
+            hue='Kategori_Pekerjaan_Simple',
+            ax=ax
+        )
+    
+        ax.set_title("Motivation vs Job Category")
+        ax.set_xlabel("Motivation")
         ax.set_ylabel("Participants")
-        ax.set_xlabel("")
-        ax.set_xticklabels(channel_ds['Channel_Simple'], rotation=30, ha='right')
-
+        ax.legend(title="Job Category")
+    
         st.pyplot(fig)
-            st.markdown("---")
-    st.markdown("### 👤 Motivation vs Job Category")
-
-    fig, ax = plt.subplots(figsize=(8,5))
-
-    sns.countplot(
-        data=filtered_df,
-        x='Motivation_Category',
-        hue='Kategori_Pekerjaan_Simple',
-        ax=ax
-    )
-
-    ax.set_title("Motivation vs Job Category")
-    ax.set_xlabel("Motivation")
-    ax.set_ylabel("Participants")
-    ax.legend(title="Job Category")
-
-    st.pyplot(fig)
 
 
 
