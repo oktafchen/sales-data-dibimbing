@@ -65,567 +65,503 @@ job_options = sorted(df['Kategori_Pekerjaan_Simple'].dropna().unique())
 
 
 
+# 4. FEATURE PREP (RINGKAS)
 # =========================
-# 3. SIDEBAR — GLOBAL FILTER
-# =========================
+df_viz = df.copy()
 
-st.sidebar.title("🎛️ Filter")
+df_viz['Month'] = df_viz['Tanggal Gabungan_fix'].dt.to_period('M').astype(str)
+
+# =========================
+# 5. SIDEBAR FILTER
+# =========================
+st.sidebar.header("🔎 Filter")
 
 # Date filter
-min_date = df['Tanggal Gabungan_fix'].min()
-max_date = df['Tanggal Gabungan_fix'].max()
+min_date = df_viz['Tanggal Gabungan_fix'].min()
+max_date = df_viz['Tanggal Gabungan_fix'].max()
 
 date_range = st.sidebar.date_input(
-    "Tanggal",
-    [min_date, max_date]
+    "Periode Tanggal",
+    value=[min_date, max_date],
+    min_value=min_date,
+    max_value=max_date
 )
 
 # Product filter
-product_options = sorted(df['Product'].dropna().unique())
-selected_products = st.sidebar.multiselect(
+product_options = sorted(df_viz['Product'].dropna().unique())
+selected_product = st.sidebar.multiselect(
     "Product",
-    product_options,
+    options=product_options,
     default=product_options
 )
 
 # Channel filter
-channel_options = sorted(df['Channel_Simple'].dropna().unique())
-selected_channels = st.sidebar.multiselect(
+channel_options = sorted(df_viz['Channel_Simple'].dropna().unique())
+selected_channel = st.sidebar.multiselect(
     "Channel",
-    channel_options,
+    options=channel_options,
     default=channel_options
 )
 
 # Job category filter
-job_options = sorted(df['Kategori_Pekerjaan_Simple'].dropna().unique())
-selected_jobs = st.sidebar.multiselect(
-    "Status Pekerjaan",
-    job_options,
+job_options = sorted(df_viz['Kategori_Pekerjaan_Simple'].dropna().unique())
+selected_job = st.sidebar.multiselect(
+    "Kategori Pekerjaan",
+    options=job_options,
     default=job_options
 )
 
-
-# =========================
-# 4. APPLY FILTER
-# =========================
-
-df_filtered = df[
-    (df['Tanggal Gabungan_fix'] >= pd.to_datetime(date_range[0])) &
-    (df['Tanggal Gabungan_fix'] <= pd.to_datetime(date_range[1])) &
-    (df['Product'].isin(selected_products)) &
-    (df['Channel_Simple'].isin(selected_channels)) &
-    (df['Kategori_Pekerjaan_Simple'].isin(selected_jobs))
+# Apply filters
+filtered_df = df_viz[
+    (df_viz['Tanggal Gabungan_fix'] >= pd.to_datetime(date_range[0])) &
+    (df_viz['Tanggal Gabungan_fix'] <= pd.to_datetime(date_range[1])) &
+    (df_viz['Product'].isin(selected_product)) &
+    (df_viz['Channel_Simple'].isin(selected_channel)) &
+    (df_viz['Kategori_Pekerjaan_Simple'].isin(selected_job))
 ]
 
 # =========================
-# PRODUCT GROUPING (TOP N)
+# 6. KPI SECTION
 # =========================
-TOP_N = 8
+st.markdown("## 📊 Key Performance Indicators")
 
-top_products = (
-    df_filtered['Product']
-    .value_counts()
-    .head(TOP_N)
-    .index
-)
-
-df_viz = df_filtered.copy()
-df_viz['Product_Grouped'] = df_viz['Product'].apply(
-    lambda x: x if x in top_products else 'Others'
-)
-
-# =========================
-# 5. SECTION 1 — OVERVIEW KPI
-# =========================
-
-st.title("🎓 Bootcamp Enrollment Dashboard")
-
-# =========================
-# KPI VARIABLES (WAJIB ADA)
-# =========================
-total_participants = len(df_filtered)
+total_participants = len(filtered_df)
 
 top_product = (
-    df_filtered['Product'].value_counts().idxmax()
-    if not df_filtered.empty else "-"
+    filtered_df['Product']
+    .value_counts()
+    .idxmax()
+    if not filtered_df.empty else "-"
 )
 
 top_channel = (
-    df_filtered['Channel_Simple'].value_counts().idxmax()
-    if not df_filtered.empty else "-"
+    filtered_df['Channel_Simple']
+    .value_counts()
+    .idxmax()
+    if not filtered_df.empty else "-"
 )
 
-job_pct = (
-    (df_filtered['Kategori_Pekerjaan_Simple'] == 'Job Seeker').mean() * 100
-    if not df_filtered.empty else 0
+job_seeker_pct = (
+    filtered_df['Kategori_Pekerjaan_Simple']
+    .value_counts(normalize=True)
+    .get('Job Seeker', 0) * 100
 )
 
-period = (
-    f"{df_filtered['Tanggal Gabungan_fix'].min().date()} – "
-    f"{df_filtered['Tanggal Gabungan_fix'].max().date()}"
-    if not df_filtered.empty else "-"
-)
-
-
-st.markdown("""
-<style>
-.kpi-box {
-    background-color: #0e1117;
-    padding: 18px;
-    border-radius: 12px;
-    text-align: center;
-    border: 1px solid #262730;
-}
-.kpi-title {
-    font-size: 14px;
-    color: #9aa0a6;
-}
-.kpi-value {
-    font-size: 22px;
-    font-weight: 600;
-    word-wrap: break-word;
-}
-</style>
-""", unsafe_allow_html=True)
+period_label = f"{date_range[0]} → {date_range[1]}"
 
 col1, col2, col3, col4, col5 = st.columns(5)
 
-with col1:
+def kpi_box(title, value):
     st.markdown(f"""
-    <div class="kpi-box">
-        <div class="kpi-title">Total Peserta</div>
-        <div class="kpi-value">{len(df_filtered)}</div>
+    <div class="kpi-card">
+        <div class="kpi-title">{title}</div>
+        <div class="kpi-value">{value}</div>
     </div>
     """, unsafe_allow_html=True)
+
+with col1:
+    kpi_box("Total Peserta", f"{total_participants:,}")
 
 with col2:
-    st.markdown(f"""
-    <div class="kpi-box">
-        <div class="kpi-title">Top Product</div>
-        <div class="kpi-value">{top_product}</div>
-    </div>
-    """, unsafe_allow_html=True)
+    kpi_box("Top Product", top_product)
 
 with col3:
-    st.markdown(f"""
-    <div class="kpi-box">
-        <div class="kpi-title">Top Channel</div>
-        <div class="kpi-value">{top_channel}</div>
-    </div>
-    """, unsafe_allow_html=True)
+    kpi_box("Top Channel", top_channel)
 
 with col4:
-    st.markdown(f"""
-    <div class="kpi-box">
-        <div class="kpi-title">% Job Seeker</div>
-        <div class="kpi-value">{job_pct:.1f}%</div>
-    </div>
-    """, unsafe_allow_html=True)
+    kpi_box("% Job Seeker", f"{job_seeker_pct:.1f}%")
 
 with col5:
-    st.markdown(f"""
-    <div class="kpi-box">
-        <div class="kpi-title">Periode Data</div>
-        <div class="kpi-value">{period}</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-
-st.divider()
-
-
-
-
+    kpi_box("Periode Data", period_label)
 
 # =========================
-# 8. SECTION 4 — DEEP DIVE (META ADS → DATA SCIENCE)
+# 7. MAIN DASHBOARD CONTENT
 # =========================
+st.markdown("---")
+st.markdown("## 📈 Overview")
 
-st.subheader("🔍 Deep Dive: Meta Ads → Data Science")
+tab1, tab2, tab3 = st.tabs([
+    "Product Performance",
+    "Channel Performance",
+    "Participant Profile"
+])
 
-if (
-    selected_channels == ['Meta Ads'] and
-    selected_products == ['Data Science']
-):
-    st.success("Menampilkan deep dive untuk Meta Ads → Data Science")
-else:
-    st.warning("Pilih Channel = Meta Ads dan Product = Data Science untuk melihat deep dive.")
+with tab1:
+    st.subheader("Distribusi Product (Top 10)")
 
-st.divider()
-
-# =========================
-# 9. SECTION 5 — STRATEGIC RECOMMENDATION
-# =========================
-
-st.subheader("🎯 Strategic Recommendations")
-
-st.markdown("""
-**Rekomendasi Utama:**
-- Fokuskan Meta Ads untuk Data Science.
-- Gunakan channel berbeda untuk product non-Data Science.
-- Sesuaikan messaging dengan motivasi peserta (career switch, job outcome).
-""")
-# =========================
-# 6. SECTION 2 — PRODUCT & CHANNEL PERFORMANCE
-# =========================
-
-# =========================
-# 6. SECTION 2 — PRODUCT & CHANNEL PERFORMANCE
-# =========================
-
-st.subheader("📊 Product & Channel Performance")
-
-# Placeholder chart (nanti kita isi)
-st.info("➡️ Grafik Product & Channel akan ditambahkan di sini.")
-
-st.divider()
-
-# --- Bar: Participants per Product ---
-prod_counts = (
-    df_filtered['Product']
-    .value_counts()
-    .sort_values(ascending=False)
-)
-
-fig1, ax1 = plt.subplots(figsize=(6,4))
-sns.barplot(
-    x=prod_counts.values,
-    y=prod_counts.index,
-    ax=ax1
-)
-ax1.set_title("Jumlah Peserta per Product")
-ax1.set_xlabel("Jumlah Peserta")
-ax1.set_ylabel("Product")
-st.pyplot(fig1)
-
-# --- Stacked Bar (COUNT): Channel per Product ---
-pivot_count = pd.crosstab(
-    df_viz['Product_Grouped'],
-    df_viz['Channel_Simple']
-)
-
-
-fig2, ax2 = plt.subplots(figsize=(8,4))
-pivot_count.plot(
-    kind='bar',
-    stacked=True,
-    ax=ax2
-)
-ax2.set_title("Distribusi Channel per Product (Count)")
-ax2.set_xlabel("Product")
-ax2.set_ylabel("Jumlah Peserta")
-ax2.legend(title="Channel", bbox_to_anchor=(1,1))
-plt.xticks(rotation=45)
-st.pyplot(fig2)
-
-
-# --- Stacked Bar (%): Channel per Product ---
-pivot_pct = pd.crosstab(
-    df_viz['Product_Grouped'],
-    df_viz['Channel_Simple'],
-    normalize='index'
-) * 100
-
-fig3, ax3 = plt.subplots(figsize=(8,4))
-pivot_pct.plot(
-    kind='bar',
-    stacked=True,
-    ax=ax3
-)
-ax3.set_title("Proporsi Channel per Product (%)")
-ax3.set_xlabel("Product")
-ax3.set_ylabel("Persentase (%)")
-ax3.legend(title="Channel", bbox_to_anchor=(1,1))
-plt.xticks(rotation=45)
-st.pyplot(fig3)
-
-
-
-# =========================
-# 7. SECTION 3 — PARTICIPANT PROFILE
-# =========================
-# =========================
-# 7. SECTION 3 — PARTICIPANT PROFILE
-# =========================
-
-st.subheader("👥 Participant Profile")
-
-st.info("➡️ Visual profil peserta akan ditambahkan di sini.")
-
-st.divider()
-
-
-# --- Stacked Bar (%): Job Category per Product ---
-job_pct = pd.crosstab(
-    df_viz['Product_Grouped'],
-    df_viz['Kategori_Pekerjaan_Simple'],
-    normalize='index'
-) * 100
-
-fig4, ax4 = plt.subplots(figsize=(8,4))
-job_pct.plot(
-    kind='bar',
-    stacked=True,
-    ax=ax4
-)
-ax4.set_title("Proporsi Status Pekerjaan per Product (%)")
-ax4.set_xlabel("Product")
-ax4.set_ylabel("Persentase (%)")
-ax4.legend(title="Status Pekerjaan", bbox_to_anchor=(1,1))
-plt.xticks(rotation=45)
-st.pyplot(fig4)
-
-if 'Umur' in df_filtered.columns and df_filtered['Umur'].notna().sum() > 0:
-    fig5, ax5 = plt.subplots(figsize=(6,4))
-    product_order = (
-    df_viz['Product_Grouped']
-    .value_counts()
-    .index
+    # =========================
+    # PREP DATA
+    # =========================
+    product_count = (
+        filtered_df
+        .groupby('Product')
+        .size()
+        .reset_index(name='count')
+        .sort_values('count', ascending=False)
+        .head(10)
     )
 
-    sns.boxplot(
-    data=df_viz,
-    x='Product_Grouped',
-    y='Umur',
-    order=product_order
+    if product_count.empty:
+        st.warning("Tidak ada data untuk filter yang dipilih.")
+    else:
+        top_value = product_count['count'].max()
+
+        colors = [
+            '#F97316' if v == top_value else '#3B82F6'
+            for v in product_count['count']
+        ]
+
+        # =========================
+        # PLOT
+        # =========================
+        fig, ax = plt.subplots(figsize=(10, 5))
+
+        bars = ax.bar(
+            product_count['Product'],
+            product_count['count'],
+            color=colors
+        )
+
+        # =========================
+        # VALUE LABEL
+        # =========================
+        for bar in bars:
+            height = bar.get_height()
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                height,
+                f'{int(height)}',
+                ha='center',
+                va='bottom',
+                fontsize=9
+            )
+
+        # =========================
+        # STYLE
+        # =========================
+        ax.set_ylabel("Jumlah Peserta")
+        ax.set_xlabel("")
+        ax.set_title("Product Terlaris berdasarkan Jumlah Peserta")
+        ax.set_xticklabels(
+            product_count['Product'],
+            rotation=45,
+            ha='right'
+        )
+
+        ax.grid(axis='y', linestyle='--', alpha=0.5)
+
+        st.pyplot(fig)
+
+with tab2:
+    st.subheader("Distribusi Channel (Top 8)")
+
+    # =========================
+    # PREP DATA
+    # =========================
+    channel_count = (
+        filtered_df
+        .groupby('Channel_Simple')
+        .size()
+        .reset_index(name='count')
+        .sort_values('count', ascending=False)
+        .head(8)
     )
 
-    plt.xticks(rotation=30, ha='right')
-    ax5.set_title("Distribusi Umur Peserta per Product")
-    ax5.set_xlabel("Product")
-    ax5.set_ylabel("Umur")
-    plt.xticks(rotation=45)
-    st.pyplot(fig5)
-else:
-    st.info("Data umur tidak tersedia untuk visualisasi.")
+    if channel_count.empty:
+        st.warning("Tidak ada data untuk filter yang dipilih.")
+    else:
+        top_value = channel_count['count'].max()
 
-st.subheader("🎓 Latar Pendidikan (Top 10 Jurusan)")
+        colors = [
+            '#F97316' if v == top_value else '#2563EB'
+            for v in channel_count['count']
+        ]
 
-top_jurusan = (
-    df_filtered['Jurusan pendidikan']
-    .value_counts()
-    .head(10)
+        # =========================
+        # PLOT
+        # =========================
+        fig, ax = plt.subplots(figsize=(10, 5))
+
+        bars = ax.bar(
+            channel_count['Channel_Simple'],
+            channel_count['count'],
+            color=colors
+        )
+
+        # =========================
+        # VALUE LABEL
+        # =========================
+        for bar in bars:
+            height = bar.get_height()
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                height,
+                f'{int(height)}',
+                ha='center',
+                va='bottom',
+                fontsize=9
+            )
+
+        # =========================
+        # STYLE
+        # =========================
+        ax.set_ylabel("Jumlah Peserta")
+        ax.set_xlabel("")
+        ax.set_title("Kontribusi Channel terhadap Enrollment")
+        ax.set_xticklabels(
+            channel_count['Channel_Simple'],
+            rotation=30,
+            ha='right'
+        )
+
+        ax.grid(axis='y', linestyle='--', alpha=0.5)
+
+        st.pyplot(fig)
+
+
+with tab3:
+    st.subheader("Profil Peserta")
+
+    col_a, col_b = st.columns(2)
+
+    # ======================================================
+    # A. JOB CATEGORY
+    # ======================================================
+    with col_a:
+        st.markdown("### 👔 Kategori Pekerjaan (Top 7)")
+
+        job_count = (
+            filtered_df
+            .groupby('Kategori_Pekerjaan_Simple')
+            .size()
+            .reset_index(name='count')
+            .sort_values('count', ascending=False)
+            .head(7)
+        )
+
+        if job_count.empty:
+            st.warning("Tidak ada data.")
+        else:
+            top_value = job_count['count'].max()
+
+            colors = [
+                '#F97316' if v == top_value else '#3B82F6'
+                for v in job_count['count']
+            ]
+
+            fig, ax = plt.subplots(figsize=(6,4))
+
+            bars = ax.barh(
+                job_count['Kategori_Pekerjaan_Simple'],
+                job_count['count'],
+                color=colors
+            )
+
+            for bar in bars:
+                width = bar.get_width()
+                ax.text(
+                    width,
+                    bar.get_y() + bar.get_height() / 2,
+                    int(width),
+                    va='center',
+                    fontsize=9
+                )
+
+            ax.invert_yaxis()
+            ax.set_xlabel("Jumlah Peserta")
+            ax.set_ylabel("")
+            ax.grid(axis='x', linestyle='--', alpha=0.4)
+
+            st.pyplot(fig)
+
+    # ======================================================
+    # B. EDUCATION LEVEL
+    # ======================================================
+    with col_b:
+        st.markdown("### 🎓 Level Pendidikan")
+
+        edu_count = (
+            filtered_df
+            .groupby('Level pendidikan')
+            .size()
+            .reset_index(name='count')
+            .sort_values('count', ascending=False)
+        )
+
+        if edu_count.empty:
+            st.warning("Tidak ada data.")
+        else:
+            top_value = edu_count['count'].max()
+
+            colors = [
+                '#F97316' if v == top_value else '#2563EB'
+                for v in edu_count['count']
+            ]
+
+            fig, ax = plt.subplots(figsize=(6,4))
+
+            bars = ax.bar(
+                edu_count['Level pendidikan'],
+                edu_count['count'],
+                color=colors
+            )
+
+            for bar in bars:
+                height = bar.get_height()
+                ax.text(
+                    bar.get_x() + bar.get_width() / 2,
+                    height,
+                    int(height),
+                    ha='center',
+                    va='bottom',
+                    fontsize=9
+                )
+
+            ax.set_ylabel("Jumlah Peserta")
+            ax.set_xlabel("")
+            ax.set_xticklabels(
+                edu_count['Level pendidikan'],
+                rotation=30,
+                ha='right'
+            )
+            ax.grid(axis='y', linestyle='--', alpha=0.4)
+
+            st.pyplot(fig)
+
+    st.markdown("---")
+
+    # ======================================================
+    # C. AGE DISTRIBUTION
+    # ======================================================
+    st.markdown("### 🎂 Distribusi Umur Peserta")
+
+    age_df = filtered_df.copy()
+    age_df['Umur'] = pd.to_numeric(age_df['Umur'], errors='coerce')
+
+    age_df = age_df.dropna(subset=['Umur'])
+
+    if age_df.empty:
+        st.warning("Data umur tidak tersedia.")
+    else:
+        fig, ax = plt.subplots(figsize=(10,4))
+
+        ax.hist(
+            age_df['Umur'],
+            bins=15,
+            color='#3B82F6',
+            edgecolor='white'
+        )
+
+        ax.set_xlabel("Umur")
+        ax.set_ylabel("Jumlah Peserta")
+        ax.set_title("Distribusi Umur Peserta")
+
+        ax.grid(axis='y', linestyle='--', alpha=0.4)
+
+        st.pyplot(fig)
+
+
+# =========================
+# 8. TREND SECTION
+# =========================
+# =========================
+# 8. TREND SECTION
+# =========================
+st.markdown("---")
+st.markdown("## 📉 Trend Analysis")
+
+# =========================
+# PREP DATA
+# =========================
+trend_df = (
+    filtered_df
+    .groupby('Month')
+    .size()
+    .reset_index(name='count')
+    .sort_values('Month')
 )
 
-fig6, ax6 = plt.subplots(figsize=(6,4))
-sns.barplot(
-    x=top_jurusan.values,
-    y=top_jurusan.index,
-    ax=ax6
-)
-ax6.set_title("Top 10 Jurusan Pendidikan Peserta")
-ax6.set_xlabel("Jumlah Peserta")
-ax6.set_ylabel("Jurusan")
-st.pyplot(fig6)
-
-
-# =========================
-# 8. SECTION 4 — DEEP DIVE (META ADS → DATA SCIENCE)
-# =========================
-
-st.subheader("🔍 Deep Dive: Meta Ads → Data Science")
-
-# Kondisi aktivasi deep dive
-is_meta_only = (set(selected_channels) == {'Meta Ads'})
-is_ds_only = (set(selected_products) == {'Data Science'})
-
-if not (is_meta_only and is_ds_only):
-    st.info("Pilih **Channel = Meta Ads** dan **Product = Data Science** untuk melihat deep dive.")
-    st.stop()
-
-# =========================
-# ISOLATE DATA
-# =========================
-meta_all = df_filtered[df_filtered['Channel_Simple'] == 'Meta Ads']
-meta_ds = meta_all[meta_all['Product'] == 'Data Science']
-meta_non_ds = meta_all[meta_all['Product'] != 'Data Science']
-
-# =========================
-# 4.1 KPI KECIL (PEMBUKTIAN CEPAT)
-# =========================
-colA, colB, colC = st.columns(3)
-
-with colA:
-    ds_share_meta = (meta_all['Product'] == 'Data Science').mean() * 100
-    st.metric("% Data Science di Meta Ads", f"{ds_share_meta:.1f}%")
-
-with colB:
-    job_seeker_ds = (meta_ds['Kategori_Pekerjaan_Simple'] == 'Job Seeker').mean() * 100
-    st.metric("% Job Seeker (DS)", f"{job_seeker_ds:.1f}%")
-
-with colC:
-    avg_age_ds = meta_ds['Umur_num'].mean() if 'Umur_num' in meta_ds.columns else np.nan
-    st.metric("Rata-rata Umur (DS)", "-" if np.isnan(avg_age_ds) else f"{avg_age_ds:.1f}")
-
-st.divider()
-
-# =========================
-# 4.2 STATUS PEKERJAAN: DS vs NON-DS
-# =========================
-st.markdown("### Status Pekerjaan (DS vs Non-DS)")
-
-job_compare = pd.crosstab(
-    meta_all['Kategori_Pekerjaan_Simple'],
-    meta_all['Product'] == 'Data Science',
-    normalize='columns'
-) * 100
-
-fig7, ax7 = plt.subplots(figsize=(6,4))
-job_compare.plot(kind='bar', ax=ax7)
-ax7.set_title("Proporsi Status Pekerjaan di Meta Ads")
-ax7.set_xlabel("Status Pekerjaan")
-ax7.set_ylabel("Persentase (%)")
-ax7.legend(["Non Data Science", "Data Science"])
-plt.xticks(rotation=45)
-st.pyplot(fig7)
-
-st.divider()
-
-# =========================
-# 4.3 DISTRIBUSI UMUR: DS vs NON-DS
-# =========================
-st.markdown("### Distribusi Umur")
-
-if 'Umur' in meta_all.columns and meta_all['Umur'].notna().sum() > 0:
-    fig8, ax8 = plt.subplots(figsize=(6,4))
-    sns.boxplot(
-        data=meta_all,
-        x=meta_all['Product'] == 'Data Science',
-        y='Umur',
-        ax=ax8
-    )
-    ax8.set_xticklabels(['Non Data Science', 'Data Science'])
-    ax8.set_title("Distribusi Umur Peserta Meta Ads")
-    ax8.set_xlabel("")
-    ax8.set_ylabel("Umur")
-    st.pyplot(fig8)
+if trend_df.empty or len(trend_df) < 2:
+    st.warning("Data tidak cukup untuk menampilkan trend.")
 else:
-    st.info("Data umur tidak tersedia untuk analisis.")
+    # Cari max & min
+    max_row = trend_df.loc[trend_df['count'].idxmax()]
+    min_row = trend_df.loc[trend_df['count'].idxmin()]
 
-st.divider()
+    # =========================
+    # PLOT
+    # =========================
+    fig, ax = plt.subplots(figsize=(11, 5))
 
-# =========================
-# 4.4 INSIGHT OTOMATIS (TEXT, BUKAN CHART)
-# =========================
-st.markdown("### Insight Utama")
-
-insights = []
-
-if ds_share_meta > 35:
-    insights.append("Meta Ads menunjukkan **product–market fit yang kuat** untuk Data Science.")
-
-if job_seeker_ds > 50:
-    insights.append("Peserta Data Science dari Meta Ads **didominasi Job Seeker**, menunjukkan orientasi career switch.")
-
-if not np.isnan(avg_age_ds) and avg_age_ds <= 27:
-    insights.append("Rata-rata umur peserta berada pada **early career stage**, cocok untuk upskilling intensif.")
-
-if len(insights) == 0:
-    insights.append("Tidak ditemukan perbedaan signifikan pada filter saat ini.")
-
-for i in insights:
-    st.success(i)
-st.subheader("🔍 Deep Dive: Meta Ads → Data Science")
-
-# Kondisi aktivasi deep dive
-is_meta_only = (set(selected_channels) == {'Meta Ads'})
-is_ds_only = (set(selected_products) == {'Data Science'})
-
-if not (is_meta_only and is_ds_only):
-    st.info("Pilih **Channel = Meta Ads** dan **Product = Data Science** untuk melihat deep dive.")
-    st.stop()
-
-# =========================
-# ISOLATE DATA
-# =========================
-meta_all = df_filtered[df_filtered['Channel_Simple'] == 'Meta Ads']
-meta_ds = meta_all[meta_all['Product'] == 'Data Science']
-meta_non_ds = meta_all[meta_all['Product'] != 'Data Science']
-
-# =========================
-# 4.1 KPI KECIL (PEMBUKTIAN CEPAT)
-# =========================
-colA, colB, colC = st.columns(3)
-
-with colA:
-    ds_share_meta = (meta_all['Product'] == 'Data Science').mean() * 100
-    st.metric("% Data Science di Meta Ads", f"{ds_share_meta:.1f}%")
-
-with colB:
-    job_seeker_ds = (meta_ds['Kategori_Pekerjaan_Simple'] == 'Job Seeker').mean() * 100
-    st.metric("% Job Seeker (DS)", f"{job_seeker_ds:.1f}%")
-
-with colC:
-    avg_age_ds = meta_ds['Umur'].mean() if 'Umur_num' in meta_ds.columns else np.nan
-    st.metric("Rata-rata Umur (DS)", "-" if np.isnan(avg_age_ds) else f"{avg_age_ds:.1f}")
-
-st.divider()
-
-# =========================
-# 4.2 STATUS PEKERJAAN: DS vs NON-DS
-# =========================
-st.markdown("### Status Pekerjaan (DS vs Non-DS)")
-
-job_compare = pd.crosstab(
-    meta_all['Kategori_Pekerjaan_Simple'],
-    meta_all['Product'] == 'Data Science',
-    normalize='columns'
-) * 100
-
-fig7, ax7 = plt.subplots(figsize=(6,4))
-job_compare.plot(kind='bar', ax=ax7)
-ax7.set_title("Proporsi Status Pekerjaan di Meta Ads")
-ax7.set_xlabel("Status Pekerjaan")
-ax7.set_ylabel("Persentase (%)")
-ax7.legend(["Non Data Science", "Data Science"])
-plt.xticks(rotation=45)
-st.pyplot(fig7)
-
-st.divider()
-
-# =========================
-# 4.3 DISTRIBUSI UMUR: DS vs NON-DS
-# =========================
-st.markdown("### Distribusi Umur")
-
-if 'Umur' in meta_all.columns and meta_all['Umur'].notna().sum() > 0:
-    fig8, ax8 = plt.subplots(figsize=(6,4))
-    sns.boxplot(
-        data=meta_all,
-        x=meta_all['Product'] == 'Data Science',
-        y='Umur',
-        ax=ax8
+    ax.plot(
+        trend_df['Month'],
+        trend_df['count'],
+        marker='o',
+        linewidth=2,
+        color='#2563EB'
     )
-    ax8.set_xticklabels(['Non Data Science', 'Data Science'])
-    ax8.set_title("Distribusi Umur Peserta Meta Ads")
-    ax8.set_xlabel("")
-    ax8.set_ylabel("Umur")
-    st.pyplot(fig8)
-else:
-    st.info("Data umur tidak tersedia untuk analisis.")
 
-st.divider()
+    # Highlight max & min
+    ax.scatter(
+        max_row['Month'],
+        max_row['count'],
+        color='green',
+        s=80,
+        zorder=3
+    )
+
+    ax.scatter(
+        min_row['Month'],
+        min_row['count'],
+        color='red',
+        s=80,
+        zorder=3
+    )
+
+    # Annotate max
+    ax.text(
+        max_row['Month'],
+        max_row['count'] + (trend_df['count'].max() * 0.03),
+        f"Max: {int(max_row['count'])}",
+        ha='center',
+        color='green',
+        fontsize=9
+    )
+
+    # Annotate min
+    ax.text(
+        min_row['Month'],
+        max(min_row['count'] - (trend_df['count'].max() * 0.05), 0),
+        f"Min: {int(min_row['count'])}",
+        ha='center',
+        color='red',
+        fontsize=9
+    )
+
+    # =========================
+    # STYLE
+    # =========================
+    ax.set_title("Trend Jumlah Peserta per Bulan")
+    ax.set_xlabel("")
+    ax.set_ylabel("Jumlah Peserta")
+    ax.set_xticklabels(
+        trend_df['Month'],
+        rotation=45,
+        ha='right'
+    )
+
+    ax.grid(axis='y', linestyle='--', alpha=0.4)
+
+    st.pyplot(fig)
+
 
 # =========================
-# 4.4 INSIGHT OTOMATIS (TEXT, BUKAN CHART)
+# 9. FOOTER
 # =========================
-st.markdown("### Insight Utama")
+st.markdown("---")
+st.caption("Dashboard dibuat untuk kebutuhan analisis sales & business insight.")
 
-insights = []
 
-if ds_share_meta > 35:
-    insights.append("Meta Ads menunjukkan **product–market fit yang kuat** untuk Data Science.")
 
-if job_seeker_ds > 50:
-    insights.append("Peserta Data Science dari Meta Ads **didominasi Job Seeker**, menunjukkan orientasi career switch.")
-
-if not np.isnan(avg_age_ds) and avg_age_ds <= 27:
-    insights.append("Rata-rata umur peserta berada pada **early career stage**, cocok untuk upskilling intensif.")
-
-if len(insights) == 0:
-    insights.append("Tidak ditemukan perbedaan signifikan pada filter saat ini.")
-
-for i in insights:
-    st.success(i)
 
 
