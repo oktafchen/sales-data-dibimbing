@@ -595,24 +595,24 @@ with tab4:
             ax.set_xticklabels(channel_ds['Channel_Simple'], rotation=30, ha='right')
     
             st.pyplot(fig)
-                st.markdown("---")
-        st.markdown("### 👤 Motivation vs Job Category")
-    
-        fig, ax = plt.subplots(figsize=(8,5))
-    
-        sns.countplot(
-            data=filtered_df,
-            x='Motivation_Category',
-            hue='Kategori_Pekerjaan_Simple',
-            ax=ax
-        )
-    
-        ax.set_title("Motivation vs Job Category")
-        ax.set_xlabel("Motivation")
-        ax.set_ylabel("Participants")
-        ax.legend(title="Job Category")
-    
-        st.pyplot(fig)
+            st.markdown("---")
+            st.markdown("### 👤 Motivation vs Job Category")
+        
+            fig, ax = plt.subplots(figsize=(8,5))
+        
+            sns.countplot(
+                data=filtered_df,
+                x='Motivation_Category',
+                hue='Kategori_Pekerjaan_Simple',
+                ax=ax
+            )
+        
+            ax.set_title("Motivation vs Job Category")
+            ax.set_xlabel("Motivation")
+            ax.set_ylabel("Participants")
+            ax.legend(title="Job Category")
+        
+            st.pyplot(fig)
 
 
 
