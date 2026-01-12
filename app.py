@@ -51,6 +51,29 @@ def load_data(uploaded_file):
 
     return df
 
+# =========================
+# 2. BASIC STYLE (OPTIONAL)
+# =========================
+st.markdown("""
+<style>
+.kpi-card {
+    background-color: #111827;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+}
+.kpi-title {
+    font-size: 14px;
+    color: #9CA3AF;
+}
+.kpi-value {
+    font-size: 26px;
+    font-weight: bold;
+    color: white;
+    word-wrap: break-word;
+}
+</style>
+""", unsafe_allow_html=True)
 
 uploaded_file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 
@@ -180,10 +203,11 @@ with col5:
 st.markdown("---")
 st.markdown("## 📈 Overview")
 
-tab1, tab2, tab3 = st.tabs([
-    "Product Performance",
-    "Channel Performance",
-    "Participant Profile"
+tab1, tab2, tab3, tab4 = st.tabs([
+    "Overview",
+    "Trend Analysis",
+    "Participant Profile",
+    "Deep Dive"
 ])
 
 with tab1:
@@ -252,13 +276,8 @@ with tab1:
 
         st.pyplot(fig)
 
-with tab2:
-    st.subheader("Distribusi Channel (Top 8)")
-
-    # =========================
-    # PREP DATA
-    # =========================
-    channel_count = (
+        st.markdown("---")
+         channel_count = (
         filtered_df
         .groupby('Channel_Simple')
         .size()
@@ -315,6 +334,71 @@ with tab2:
         )
 
         ax.grid(axis='y', linestyle='--', alpha=0.5)
+
+        st.pyplot(fig)
+        
+
+with tab2:
+    st.subheader("📉 Trend Analysis")
+
+    # =========================
+    # PREP DATA
+    # =========================
+    trend_df = (
+        filtered_df
+        .groupby('Month')
+        .size()
+        .reset_index(name='count')
+        .sort_values('Month')
+    )
+
+    if trend_df.empty or len(trend_df) < 2:
+        st.warning("Data tidak cukup untuk menampilkan trend.")
+    else:
+        max_row = trend_df.loc[trend_df['count'].idxmax()]
+        min_row = trend_df.loc[trend_df['count'].idxmin()]
+
+        fig, ax = plt.subplots(figsize=(11, 5))
+
+        ax.plot(
+            trend_df['Month'],
+            trend_df['count'],
+            marker='o',
+            linewidth=2,
+            color='#2563EB'
+        )
+
+        ax.scatter(max_row['Month'], max_row['count'], color='green', s=80)
+        ax.scatter(min_row['Month'], min_row['count'], color='red', s=80)
+
+        ax.text(
+            max_row['Month'],
+            max_row['count'] + (trend_df['count'].max() * 0.03),
+            f"Max: {int(max_row['count'])}",
+            ha='center',
+            color='green',
+            fontsize=9
+        )
+
+        ax.text(
+            min_row['Month'],
+            max(min_row['count'] - (trend_df['count'].max() * 0.05), 0),
+            f"Min: {int(min_row['count'])}",
+            ha='center',
+            color='red',
+            fontsize=9
+        )
+
+        ax.set_title("Trend Jumlah Peserta per Bulan")
+        ax.set_xlabel("")
+        ax.set_ylabel("Jumlah Peserta")
+        ax.set_xticklabels(
+            trend_df['Month'],
+            rotation=45,
+            ha='right'
+        )
+
+        ax.grid(axis='y', linestyle='--', alpha=0.4)
 
         st.pyplot(fig)
 
@@ -459,101 +543,6 @@ with tab3:
         ax.grid(axis='y', linestyle='--', alpha=0.4)
 
         st.pyplot(fig)
-
-
-# =========================
-# 8. TREND SECTION
-# =========================
-# =========================
-# 8. TREND SECTION
-# =========================
-st.markdown("---")
-st.markdown("## 📉 Trend Analysis")
-
-# =========================
-# PREP DATA
-# =========================
-trend_df = (
-    filtered_df
-    .groupby('Month')
-    .size()
-    .reset_index(name='count')
-    .sort_values('Month')
-)
-
-if trend_df.empty or len(trend_df) < 2:
-    st.warning("Data tidak cukup untuk menampilkan trend.")
-else:
-    # Cari max & min
-    max_row = trend_df.loc[trend_df['count'].idxmax()]
-    min_row = trend_df.loc[trend_df['count'].idxmin()]
-
-    # =========================
-    # PLOT
-    # =========================
-    fig, ax = plt.subplots(figsize=(11, 5))
-
-    ax.plot(
-        trend_df['Month'],
-        trend_df['count'],
-        marker='o',
-        linewidth=2,
-        color='#2563EB'
-    )
-
-    # Highlight max & min
-    ax.scatter(
-        max_row['Month'],
-        max_row['count'],
-        color='green',
-        s=80,
-        zorder=3
-    )
-
-    ax.scatter(
-        min_row['Month'],
-        min_row['count'],
-        color='red',
-        s=80,
-        zorder=3
-    )
-
-    # Annotate max
-    ax.text(
-        max_row['Month'],
-        max_row['count'] + (trend_df['count'].max() * 0.03),
-        f"Max: {int(max_row['count'])}",
-        ha='center',
-        color='green',
-        fontsize=9
-    )
-
-    # Annotate min
-    ax.text(
-        min_row['Month'],
-        max(min_row['count'] - (trend_df['count'].max() * 0.05), 0),
-        f"Min: {int(min_row['count'])}",
-        ha='center',
-        color='red',
-        fontsize=9
-    )
-
-    # =========================
-    # STYLE
-    # =========================
-    ax.set_title("Trend Jumlah Peserta per Bulan")
-    ax.set_xlabel("")
-    ax.set_ylabel("Jumlah Peserta")
-    ax.set_xticklabels(
-        trend_df['Month'],
-        rotation=45,
-        ha='right'
-    )
-
-    ax.grid(axis='y', linestyle='--', alpha=0.4)
-
-    st.pyplot(fig)
-
 
 # =========================
 # 9. FOOTER
