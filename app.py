@@ -67,7 +67,15 @@ def load_data(uploaded_file):
 
     
     return df
+# =========================
+# LOAD DATA
+# =========================
+df = load_data()
 
+if df.empty:
+    st.error("Dataset kosong atau gagal dibaca.")
+    st.stop()
+    
 # =========================
 # 2. BASIC STYLE (OPTIONAL)
 # =========================
