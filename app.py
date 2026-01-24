@@ -41,7 +41,7 @@ def simplify_motivation(x):
    
 
 def load_data(uploaded_file):
-    df = pd.read_csv(uploaded_file)
+    df = pd.read_csv("df_sheet1 (1).csv")
 
     # Date handling
     if 'Tanggal Gabungan_fix' in df.columns:
@@ -92,13 +92,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-uploaded_file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
-
-if uploaded_file is None:
-    st.info("Upload dataset CSV untuk mulai dashboard.")
-    st.stop()
-
-df = load_data(uploaded_file)
 
 job_options = sorted(df['Kategori_Pekerjaan_Simple'].dropna().unique())
 
