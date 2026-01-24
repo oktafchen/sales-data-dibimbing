@@ -66,7 +66,7 @@ def load_data(uploaded_file):
         df['Motivation_Category'] = 'Unknown'
 
     
-return df
+    return df
 
 # =========================
 # 2. BASIC STYLE (OPTIONAL)
