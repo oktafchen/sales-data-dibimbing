@@ -112,6 +112,20 @@ df_viz = df.copy()
 df_viz['Month'] = df_viz['Tanggal Gabungan_fix'].dt.to_period('M').astype(str)
 
 # =========================
+# VALIDASI DATE RANGE
+# =========================
+if not isinstance(date_range, (list, tuple)) or len(date_range) != 2:
+    st.warning("📅 Silakan pilih rentang tanggal (awal dan akhir).")
+    st.stop()
+
+start_date, end_date = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
+
+if start_date > end_date:
+    st.warning("📅 Tanggal awal tidak boleh lebih besar dari tanggal akhir.")
+    st.stop()
+
+
+# =========================
 # 5. SIDEBAR FILTER
 # =========================
 st.sidebar.header("🔎 Filter")
@@ -122,7 +136,7 @@ max_date = df_viz['Tanggal Gabungan_fix'].max()
 
 date_range = st.sidebar.date_input(
     "Periode Tanggal",
-    value=[min_date, max_date],
+    value=(min_date, max_date),
     min_value=min_date,
     max_value=max_date
 )
@@ -153,8 +167,8 @@ selected_job = st.sidebar.multiselect(
 
 # Apply filters
 filtered_df = df_viz[
-    (df_viz['Tanggal Gabungan_fix'] >= pd.to_datetime(date_range[0])) &
-    (df_viz['Tanggal Gabungan_fix'] <= pd.to_datetime(date_range[1])) &
+    (df_viz['Tanggal Gabungan_fix'] >= start_date) &
+    (df_viz['Tanggal Gabungan_fix'] <= end_date) &
     (df_viz['Product'].isin(selected_product)) &
     (df_viz['Channel_Simple'].isin(selected_channel)) &
     (df_viz['Kategori_Pekerjaan_Simple'].isin(selected_job))
