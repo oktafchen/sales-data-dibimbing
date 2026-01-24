@@ -60,7 +60,7 @@ def load_data(uploaded_file):
     df['Kategori_Pekerjaan_Simple'] = df['Kategori Pekerjaan'].apply(
         simplify_job_category
     )
-     if 'Motivasi mengikuti bootcamp' in df.columns:
+    if 'Motivasi mengikuti bootcamp' in df.columns:
         df['Motivation_Category'] = df['Motivasi mengikuti bootcamp'].apply(simplify_motivation)
     else:
         df['Motivation_Category'] = 'Unknown'
