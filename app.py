@@ -40,7 +40,7 @@ def simplify_motivation(x):
 
    
 
-def load_data(uploaded_file):
+def load_data():
     try:
         df = pd.read_csv("df_sheet1 (1).csv")
     except Exception as e:
@@ -95,7 +95,11 @@ st.markdown("""
 }
 </style>
 """, unsafe_allow_html=True)
+df = load_data()
 
+if df.empty:
+    st.error("Dataset kosong.")
+    st.stop()
 
 job_options = sorted(df['Kategori_Pekerjaan_Simple'].dropna().unique())
 
