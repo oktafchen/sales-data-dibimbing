@@ -41,7 +41,7 @@ def simplify_motivation(x):
    
 
 def load_data(uploaded_file):
-    df = pd.read_csv("df_sheet1 (1).csv")
+    df = pd.read_csv("data/df_sheet1 (1).csv")
 
     # Date handling
     if 'Tanggal Gabungan_fix' in df.columns:
