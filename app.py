@@ -25,7 +25,20 @@ def simplify_job_category(x):
         return 'Pekerja'
     else:
         return 'Others'
+        
+def simplify_motivation(x):
+    x = str(x).lower()
 
+    if any(k in x for k in ['cari kerja', 'job', 'kerja', 'career', 'fresh graduate']):
+        return 'Job Seeking'
+    elif any(k in x for k in ['switch', 'pindah', 'career change']):
+        return 'Career Switching'
+    elif any(k in x for k in ['upskill', 'belajar', 'skill', 'knowledge']):
+        return 'Upskilling'
+    else:
+        return 'Others / Unclear'
+
+   
 
 def load_data(uploaded_file):
     df = pd.read_csv(uploaded_file)
@@ -48,23 +61,11 @@ def load_data(uploaded_file):
     df['Kategori_Pekerjaan_Simple'] = df['Kategori Pekerjaan'].apply(
         simplify_job_category
     )
-
-def simplify_motivation(x):
-    x = str(x).lower()
-
-    if any(k in x for k in ['cari kerja', 'job', 'kerja', 'career', 'fresh graduate']):
-        return 'Job Seeking'
-    elif any(k in x for k in ['switch', 'pindah', 'career change']):
-        return 'Career Switching'
-    elif any(k in x for k in ['upskill', 'belajar', 'skill', 'knowledge']):
-        return 'Upskilling'
+     if 'Motivasi mengikuti bootcamp' in df.columns:
+        df['Motivation_Category'] = df['Motivasi mengikuti bootcamp'].apply(simplify_motivation)
     else:
-        return 'Others / Unclear'
+        df['Motivation_Category'] = 'Unknown'
 
-    if 'Motivasi mengikuti bootcamp' in df.columns:
-    df['Motivation_Category'] = df['Motivasi mengikuti bootcamp'].apply(simplify_motivation)
-    else:
-    df['Motivation_Category'] = 'Unknown'
     
     return df
 
@@ -187,25 +188,6 @@ job_seeker_pct = (
     .get('Job Seeker', 0) * 100
 )
 
-if 'Motivation_Category' not in filtered_df.columns:
-    st.warning("Kolom Motivation_Category belum tersedia.")
-elif filtered_df['Motivation_Category'].dropna().empty:
-    st.warning("Data motivasi tidak tersedia.")
-else:
-    fig, ax = plt.subplots(figsize=(8,5))
-
-    sns.countplot(
-        data=filtered_df,
-        x='Motivation_Category',
-        hue='Kategori_Pekerjaan_Simple',
-        ax=ax
-    )
-
-    ax.set_title("Motivation vs Job Category")
-    ax.set_xlabel("Motivation")
-    ax.set_ylabel("Participants")
-
-    st.pyplot(fig)
 period_label = f"{date_range[0]} → {date_range[1]}"
 
 col1, col2, col3, col4, col5 = st.columns(5)
