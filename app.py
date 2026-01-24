@@ -41,7 +41,11 @@ def simplify_motivation(x):
    
 
 def load_data(uploaded_file):
-    df = pd.read_csv("df_sheet1 (1).csv")
+    try:
+        df = pd.read_csv("df_sheet1 (1).csv")
+    except Exception as e:
+        st.error(f"Gagal membaca file CSV: {e}")
+        st.stop()
 
     # Date handling
     if 'Tanggal Gabungan_fix' in df.columns:
@@ -67,14 +71,6 @@ def load_data(uploaded_file):
 
     
     return df
-# =========================
-# LOAD DATA
-# =========================
-df = load_data()
-
-if df.empty:
-    st.error("Dataset kosong atau gagal dibaca.")
-    st.stop()
     
 # =========================
 # 2. BASIC STYLE (OPTIONAL)
