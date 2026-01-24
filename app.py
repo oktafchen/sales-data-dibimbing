@@ -111,18 +111,7 @@ df_viz = df.copy()
 
 df_viz['Month'] = df_viz['Tanggal Gabungan_fix'].dt.to_period('M').astype(str)
 
-# =========================
-# VALIDASI DATE RANGE
-# =========================
-if not isinstance(date_range, (list, tuple)) or len(date_range) != 2:
-    st.warning("📅 Silakan pilih rentang tanggal (awal dan akhir).")
-    st.stop()
 
-start_date, end_date = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
-
-if start_date > end_date:
-    st.warning("📅 Tanggal awal tidak boleh lebih besar dari tanggal akhir.")
-    st.stop()
 
 
 # =========================
@@ -140,7 +129,18 @@ date_range = st.sidebar.date_input(
     min_value=min_date,
     max_value=max_date
 )
+# =========================
+# VALIDASI DATE RANGE
+# =========================
+if not isinstance(date_range, (list, tuple)) or len(date_range) != 2:
+    st.warning("📅 Silakan pilih rentang tanggal (awal dan akhir).")
+    st.stop()
 
+start_date, end_date = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
+
+if start_date > end_date:
+    st.warning("📅 Tanggal awal tidak boleh lebih besar dari tanggal akhir.")
+    st.stop()
 # Product filter
 product_options = sorted(df_viz['Product'].dropna().unique())
 selected_product = st.sidebar.multiselect(
