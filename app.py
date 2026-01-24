@@ -56,7 +56,6 @@ def load_data(uploaded_file):
     df['Channel_Simple'] = df['Channel'].apply(
         lambda x: x if x in top_channels else 'Others'
     )
-
     # 🔥 WAJIB ADA — INI KUNCI
     df['Kategori_Pekerjaan_Simple'] = df['Kategori Pekerjaan'].apply(
         simplify_job_category
@@ -67,7 +66,7 @@ def load_data(uploaded_file):
         df['Motivation_Category'] = 'Unknown'
 
     
-    return df
+return df
 
 # =========================
 # 2. BASIC STYLE (OPTIONAL)
