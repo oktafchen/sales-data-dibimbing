@@ -143,37 +143,53 @@ if start_date > end_date:
     st.warning("📅 Tanggal awal tidak boleh lebih besar dari tanggal akhir.")
     st.stop()
 # Product filter
-product_options = sorted(df_viz['Product'].dropna().unique())
-selected_product = st.sidebar.multiselect(
-    "Product",
-    options=product_options,
-    default=product_options
+product_options = ['All'] + sorted(df_viz['Product'].dropna().unique())
+
+selected_product = st.sidebar.selectbox(
+    "📦 Product",
+    options=product_options
 )
 
+
 # Channel filter
-channel_options = sorted(df_viz['Channel_Simple'].dropna().unique())
-selected_channel = st.sidebar.multiselect(
-    "Channel",
-    options=channel_options,
-    default=channel_options
+channel_options = ['All'] + sorted(df_viz['Channel_Simple'].dropna().unique())
+
+selected_channel = st.sidebar.selectbox(
+    "📢 Channel",
+    options=channel_options
 )
 
 # Job category filter
-job_options = sorted(df_viz['Kategori_Pekerjaan_Simple'].dropna().unique())
-selected_job = st.sidebar.multiselect(
-    "Kategori Pekerjaan",
-    options=job_options,
-    default=job_options
+job_options = ['All'] + sorted(df_viz['Kategori_Pekerjaan_Simple'].dropna().unique())
+
+selected_job = st.sidebar.selectbox(
+    "👤 Kategori Pekerjaan",
+    options=job_options
 )
 
 # Apply filters
 filtered_df = df_viz[
     (df_viz['Tanggal Gabungan_fix'] >= start_date) &
-    (df_viz['Tanggal Gabungan_fix'] <= end_date) &
-    (df_viz['Product'].isin(selected_product)) &
-    (df_viz['Channel_Simple'].isin(selected_channel)) &
-    (df_viz['Kategori_Pekerjaan_Simple'].isin(selected_job))
+    (df_viz['Tanggal Gabungan_fix'] <= end_date)
 ]
+if selected_product != 'All':
+    filtered_df = filtered_df[filtered_df['Product'] == selected_product]
+
+if selected_channel != 'All':
+    filtered_df = filtered_df[filtered_df['Channel_Simple'] == selected_channel]
+
+if selected_job != 'All':
+    filtered_df = filtered_df[
+        filtered_df['Kategori_Pekerjaan_Simple'] == selected_job
+    ]
+
+# =========================
+# EMPTY STATE (AMAN)
+# =========================
+if filtered_df.empty:
+    st.warning("Tidak ada data untuk kombinasi filter yang dipilih.")
+    st.stop()
+
 
 # =========================
 # 6. KPI SECTION
