@@ -611,7 +611,7 @@ with tab4:
             bars = ax.bar(
                 channel_ds['Channel_Simple'],
                 channel_ds['count'],
-                color=['#F97316' if i == 0 else '#3B82F6' for i in range(len(channel_ds))]
+                color='#3B82F6'
             )
     
             for bar in bars:
