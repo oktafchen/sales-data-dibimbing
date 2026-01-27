@@ -82,6 +82,7 @@ st.markdown("""
     padding: 20px;
     border-radius: 12px;
     text-align: center;
+    height: 100%;
 }
 .kpi-title {
     font-size: 14px;
@@ -91,7 +92,9 @@ st.markdown("""
     font-size: 26px;
     font-weight: bold;
     color: white;
-    word-wrap: break-word;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -138,6 +141,8 @@ if not isinstance(date_range, (list, tuple)) or len(date_range) != 2:
     st.stop()
 
 start_date, end_date = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
+
+
 
 if start_date > end_date:
     st.warning("📅 Tanggal awal tidak boleh lebih besar dari tanggal akhir.")
@@ -218,9 +223,10 @@ job_seeker_pct = (
     .get('Job Seeker', 0) * 100
 )
 
-period_label = f"{date_range[0]} → {date_range[1]}"
+period_label = f"{start_date.strftime('%b %Y')} → {end_date.strftime('%b %Y')}"
 
-col1, col2, col3, col4, col5 = st.columns(5)
+col1, col2, col3, col4, col5 = st.columns([1, 1.2, 1, 1, 1.6])
+
 
 def kpi_box(title, value):
     st.markdown(f"""
