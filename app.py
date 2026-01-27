@@ -282,19 +282,14 @@ with tab1:
     if product_count.empty:
         st.warning("Tidak ada data untuk filter yang dipilih.")
     else:
-        top_value = product_count['count'].max()
-
-        colors = [
-            '#F97316' if v == top_value else '#3B82F6'
-            for v in product_count['count']
-        ]
+        
 
         fig, ax = plt.subplots(figsize=(10, 5))
 
         bars = ax.bar(
             product_count['Product'],
             product_count['count'],
-            color=colors
+            color='#3B82F6'
         )
 
         for bar in bars:
@@ -338,19 +333,14 @@ with tab1:
     if channel_count.empty:
         st.warning("Tidak ada data untuk filter yang dipilih.")
     else:
-        top_value = channel_count['count'].max()
-
-        colors = [
-            '#F97316' if v == top_value else '#2563EB'
-            for v in channel_count['count']
-        ]
+        
 
         fig, ax = plt.subplots(figsize=(10, 5))
 
         bars = ax.bar(
             channel_count['Channel_Simple'],
             channel_count['count'],
-            color=colors
+            color='#2563EB'
         )
 
         for bar in bars:
@@ -465,19 +455,14 @@ with tab3:
         if job_count.empty:
             st.warning("Tidak ada data.")
         else:
-            top_value = job_count['count'].max()
-
-            colors = [
-                '#F97316' if v == top_value else '#3B82F6'
-                for v in job_count['count']
-            ]
+            
 
             fig, ax = plt.subplots(figsize=(6,4))
 
             bars = ax.barh(
                 job_count['Kategori_Pekerjaan_Simple'],
                 job_count['count'],
-                color=colors
+                color='#3B82F6'
             )
 
             for bar in bars:
@@ -514,19 +499,14 @@ with tab3:
         if edu_count.empty:
             st.warning("Tidak ada data.")
         else:
-            top_value = edu_count['count'].max()
-
-            colors = [
-                '#F97316' if v == top_value else '#2563EB'
-                for v in edu_count['count']
-            ]
+            
 
             fig, ax = plt.subplots(figsize=(6,4))
 
             bars = ax.bar(
                 edu_count['Level pendidikan'],
                 edu_count['count'],
-                color=colors
+                color='#3B82F6'
             )
 
             for bar in bars:
